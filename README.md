@@ -1,6 +1,8 @@
 
 # 🌤️ Inteligentna Stacja Meteo IoT z Autorskim Systemem Awaryjnym (Failover Solution)
 
+https://parkowa.info.pl/
+
 ## 📌 O Projekcie
 
 Projekt przedstawia w pełni funkcjonalny, zaawansowany system telemetryczny do monitorowania warunków atmosferycznych w czasie rzeczywistym. Architektura systemu obejmuje pełną ścieżkę danych: od fizycznego pomiaru na zróżnicowanych magistralach sprzętowych, przez bezprzewodową transmisję Wi-Fi, aż po bezpieczny serwerowy backend i interaktywny panel użytkownika (Dashboard).
