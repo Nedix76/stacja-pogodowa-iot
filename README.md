@@ -118,6 +118,4 @@ Aby system awaryjny działał w pełni autonomicznie w chmurze, należy skonfigu
 ```bash
 /usr/local/bin/php /home/user/public_html/web-server/pogoda_backup.php
 
-Wszystko poukładane i zaktualizowane zgodnie z Twoim nowym systemem. Możesz śmiało wrzucać na GitHuba! Daj znać, jak poszło.
-
 ```
