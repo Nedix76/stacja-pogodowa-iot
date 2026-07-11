@@ -1,4 +1,5 @@
 
+```markdown
 # 🌤️ Inteligentna Stacja Meteo IoT z Autorskim Systemem Awaryjnym (Failover Solution)
 
 https://parkowa.info.pl/
@@ -7,22 +8,22 @@ https://parkowa.info.pl/
 
 Projekt przedstawia w pełni funkcjonalny, zaawansowany system telemetryczny do monitorowania warunków atmosferycznych w czasie rzeczywistym. Architektura systemu obejmuje pełną ścieżkę danych: od fizycznego pomiaru na zróżnicowanych magistralach sprzętowych, przez bezprzewodową transmisję Wi-Fi, aż po bezpieczny serwerowy backend i interaktywny panel użytkownika (Dashboard).
 
-Kluczowym elementem wyróżniającym ten projekt na tle standardowych rozwiązań IoT jest **wdrożenie modułu awaryjnego (Failover Script) w środowisku Node.js**. W przypadku fizycznego uszkodzenia stacji, braku zasilania lub problemów z sieciowym połączeniem bezprzewodowym, system automatycznie (lub po uruchomieniu przez administratora) przełącza się na pobieranie danych ze światowej klasy publicznych interfejsów API dla precyzyjnych współrzędnych stacji. Zapewnia to bezprzerwowość danych historycznych i ciągłość generowania wykresów analitycznych.
+Kluczowym elementem wyróżniającym ten projekt na tle standardowych rozwiązań IoT jest **wdrożenie bezobsługowego serwerowego modułu awaryjnego (Smart Failover Script) w PHP**. W przypadku fizycznego uszkodzenia stacji, braku zasilania lub problemów z sieciowym połączeniem bezprzewodowym, serwer automatycznie – poprzez harmonogram zadań CRON – wykrywa brak aktywności mikrokontrolera. Jeśli stacja milczy, skrypt samoczynnie przełącza się na pobieranie danych meteorologicznych z publicznych interfejsów API dla precyzyjnych współrzędnych stacji. Zapewnia to bezprzerwowość danych historycznych i ciągłość generowania wykresów analitycznych bez potrzeby ingerencji człowieka.
 
 ---
 
 ## 🏗️ Pełna Architektura Systemu (Data Architecture)
 
-Projekt został podzielony na 3 niezależne warstwy, co odzwierciedla zasady czystej architektury oprogramowania (Clean Architecture) i pozwala na łatwe skalowanie kodu:
+Projekt został podzielony na niezależne warstwy, co odzwierciedla zasady czystej architektury oprogramowania (Clean Architecture) i pozwala na łatwe skalowanie kodu:
 
 ### A. Warstwa Sprzętowa (Hardware Layer - ESP32)
 Sercem fizycznej stacji jest mikrokontroler **ESP32**. Oprogramowanie układowe zostało napisane w języku C++ zoptymalizowanym pod kątem wielozadaniowości obsługi magistral oraz nowoczesnych funkcji zdalnego zarządzania urządzeniem (OTA / WebServer). Mikrokontroler zarządza jednoczesnym odczytem z czujników i co kilka minut buduje pakiet danych, który wysyła zabezpieczonym protokołem HTTP GET bezpośrednio na serwer produkcyjny.
 
-### B. Warstwa Awaryjna (Failover Layer - Node.js)
-Gdy sprzęt ulegnie awarii lub straci zasilanie, uruchamiany jest skrypt `pogoda_backup.js` osadzony w środowisku Node.js. Pobiera on dane meteorologiczne z zewnętrznego API dla współrzędnych geograficznych stacji, dokonuje matematycznego przeliczenia jednostek i wysyła zapytanie na serwer, idealnie imitując fizyczne urządzenie i zachowując ciągłość osi czasu w bazie danych.
+### B. Warstwa Awaryjna (Smart Failover Layer - Cloud PHP)
+Gdy sprzęt ulegnie awarii lub straci zasilanie, serwerowy harmonogram zadań (CRON) uruchamia skrypt `pogoda_backup.php`. Skrypt weryfikuje czas ostatniego wpisu w bazie danych. Jeśli czas ten przekracza bezpieczny próg (15 minut), skrypt pobiera dane z zewnętrznego API dla współrzędnych geograficznych stacji, dokonuje matematycznego przeliczenia jednostek (np. W/m² na Lux) i poprzez bezpośrednie dołączanie plików (`include`) symuluje żądanie sprzętowe, dbając o ciągłość osi czasu w bazie danych oraz aktualizację cache prognozy.
 
 ### C. Warstwa Serwerowa i Prezentacji (Backend & Frontend)
-* **Backend (PHP + MySQL):** Odbiera pakiety, filtruje je, waliduje klucz bezpieczeństwa i zapisuje w relacyjnej bazie danych za pomocą bezpiecznych zapytań parametryzowanych.
+* **Backend (PHP + MySQL):** Odbiera pakiety z ESP32 lub skryptu awaryjnego, filtruje je, waliduje klucz bezpieczeństwa i zapisuje w relacyjnej bazie danych za pomocą bezpiecznych zapytań parametryzowanych (PDO).
 * **Frontend (Responsive Dashboard):** Panel użytkownika wykonany w nowoczesnym stylu *Dark Premium Design*. Wykorzystuje technologię CSS Grid/Flexbox oraz bibliotekę **Chart.js** do generowania interaktywnych wykresów zmian pogodowych.
 
 ---
@@ -36,21 +37,20 @@ stacja-pogodowa-iot/
 ├── firmware/
 │   └── stacja_iot_esp32/
 │       └── stacja_iot_esp32.ino   # Firmware C++ sterujący pracą mikrokontrolera ESP32 (OTA + WebServer)
-├── backup-system/
-│   ├── pogoda_backup.js           # Skrypt zapasowy (Node.js) pobierający dane z Open-Meteo
-│   └── start_backup.bat           # Skrypt wsadowy Windows do błyskawicznego odpalenia backupu
 └── web-server/
     ├── .htaccess                  # Zaawansowana konfiguracja serwera Apache (zabezpieczenia)
     ├── index.php                  # Panel główny, wykresy Chart.js, wektorowy kompas i termometr
-    ├── insert.php                 # Bezpieczny punkt końcowy API odbierający dane do bazy MySQL
-    └── zapisz_prognoze.php        # System lokalnego keszowania danych prognozy pogody
+    ├── insert_data.php            # Bezpieczny punkt końcowy API odbierający dane do bazy MySQL
+    ├── zapisz_prognoze.php        # System lokalnego keszowania danych prognozy pogody
+    └── pogoda_backup.php          # Serwerowy skrypt awaryjny (Smart Failover) uruchamiany przez CRON
 
 ```
 
 ### Szczegółowe wyjaśnienie roli plików na serwerze:
 
-* **`insert.php`:** To brama wejściowa dla telemetrii. Skrypt nasłuchuje żądań GET. Zanim cokolwiek trafi do bazy, skrypt sprawdza poprawność unikalnego tokenu `api_key`. Jeśli token jest błędny, serwer odrzuca połączenie.
-* **`zapisz_prognoze.php`:** Odpowiada za optymalizację działania aplikacji. Pobieranie prognozy pogody na żywo przy każdym odświeżeniu strony przez użytkownika blokowałoby serwer i generowało niepotrzebny ruch (często prowadząc do tzw. *cURL timeout*). Ten skrypt pobiera prognozę raz na określony czas i zapisuje ją do lokalnego pliku tekstowego jako JSON cache.
+* **`insert_data.php`:** To brama wejściowa dla telemetrii. Skrypt nasłuchuje żądań GET. Zanim cokolwiek trafi do bazy, skrypt sprawdza poprawność unikalnego tokenu `api_key`. Jeśli token jest błędny, serwer odrzuca połączenie.
+* **`zapisz_prognoze.php`:** Odpowiada za optymalizację działania aplikacji. Pobieranie prognozy pogody na żywo przy każdym odświeżeniu strony przez użytkownika blokowałoby serwer i generowało niepotrzebny ruch. Ten skrypt przetwarza dane synoptyczne i zapisuje je do lokalnego pliku tekstowego jako JSON cache.
+* **`pogoda_backup.php`:** Autonomiczny moduł ratunkowy. Sprawdza status stacji i w razie awarii pobiera dane pogodowe z Open-Meteo, po czym bezpiecznie przekazuje je do `insert_data.php` oraz `zapisz_prognoze.php` w celu zachowania spójności bazy oraz wyglądu interfejsu.
 * **`.htaccess`:** Pilnuje porządku i bezpieczeństwa na serwerze Apache. Wymusza certyfikat SSL (HTTPS), ukrywa rozszerzenia plików `.php` w adresie URL użytkownika oraz wstrzykuje nagłówki bezpieczeństwa chroniące przed atakami sieciowymi.
 
 ---
@@ -67,7 +67,7 @@ Fizyczna stacja obsługuje aż trzy całkowicie odmienne standardy przesyłu syg
 
 ### 2. Zaawansowane Funkcje Przemysłowe i Zarządzanie Urządzeniem
 
-W najnowszej aktualizacji oprogramowania układowego wdrożono standardy znane z profesjonalnych systemów komercyjnych:
+W oprogramowaniu układowym wdrożono standardy znane z profesjonalnych systemów komercyjnych:
 
 * **Zdalna Aktualizacja Softu (ElegantOTA):** Stacja umożliwia bezprzewodowe wgrywanie nowego oprogramowania układowego (Over-The-Air) przez sieć Wi-Fi pod adresem `/update`, bez konieczności fizycznego demontażu urządzenia i podłączania kabla USB.
 * **Pamięć Nieulotna (Preferences):** Dane uwierzytelniające sieci bezprzewodowej Wi-Fi są dynamicznie zapisywane i odczytywane z pamięci Flash mikrokontrolera przy użyciu biblioteki `Preferences`. Zapobiega to utracie konfiguracji po nagłym zaniku zasilania i pozwala na elastyczną zmianę sieci bez ponownego flashowania kodu.
@@ -75,7 +75,7 @@ W najnowszej aktualizacji oprogramowania układowego wdrożono standardy znane z
 
 ### 3. Zaawansowane Funkcje Panelu (Frontend UI)
 
-* **Wektorowy Kompas Kierunku Wiatru:** Zamiast surowego tekstu, na stronie zaimplementowano interaktywną różę wiatrów. Wykorzystuje ona właściwości CSS `transform: rotate()` powiązane z dynamicznymi danymi o kącie wiatru ($0^\circ - 360^\circ$) prosto z sensora Modbus. Prędkość i kierunek wiatru zostały od siebie odizolowane interfejsowo w celu poprawy czytelności UI.
+* **Wektorowy Kompas Kierunku Wiatru:** Zamiast surowego tekstu, na stronie zaimplementowano interaktywną różę wiatrów. Wykorzystuje ona właściwości CSS `transform: rotate()` powiązane z dynamicznymi danymi o kącie wiatru (0° - 360°) prosto z sensora Modbus. Prędkość i kierunek wiatru zostały od siebie odizolowane interfejsowo w celu poprawy czytelności UI.
 * **Termometr Real-Time:** Słupkowy wskaźnik temperatury płynnie dopasowujący swoją wysokość i kolorystykę w zależności od napływających danych z czujników.
 * **Matematyczna Faza Księżyca:** Panel wylicza aktualną fazę księżyca bezpośrednio w kodzie PHP na podstawie daty i długości cyklu synodycznego (29.53 dnia), eliminując potrzebę odpytywania zewnętrznych serwerów astronomicznych.
 
@@ -85,8 +85,8 @@ W najnowszej aktualizacji oprogramowania układowego wdrożono standardy znane z
 
 Projekt został zabezpieczony przed najpopularniejszymi zagrożeniami z listy OWASP Top 10:
 
-* **Eliminacja SQL Injection:** W pliku `insert.php` do wprowadzania zmiennych do bazy danych użyto wyłącznie **Prepared Statements** (zapytań parametryzowanych) w interfejsie MySQLi. Surowe dane od użytkownika/stacji nigdy nie są bezpośrednio łączone z zapytaniem SQL.
-* **Ochrona przed XX/XSS (Cross-Site Scripting):** Wdrożono restrykcyjną politykę **Content Security Policy (CSP)**. Serwer generuje unikalną, losową wartość (tzw. `nonce`) przy każdym odświeżeniu strony. Przeglądarka uruchomi tylko te skrypty JavaScript, które posiadają ten token, blokując wstrzyknięty, złośliwy kod z zewnętrznych źródeł.
+* **Eliminacja SQL Injection:** Do komunikacji z bazą danych wykorzystano interfejs **PDO (Prepared Statements)** z zapytaniami parametryzowanymi. Surowe dane wejściowe nigdy nie są bezpośrednio łączone z zapytaniem SQL.
+* **Ochrona przed XSS (Cross-Site Scripting):** Wdrożono restrykcyjną politykę **Content Security Policy (CSP)**. Serwer generuje unikalną, losową wartość (tzw. `nonce`) przy każdym odświeżeniu strony. Przeglądarka uruchomi tylko te skrypty JavaScript, które posiadają ten token, blokując wstrzyknięty, złośliwy kod z zewnętrznych źródeł.
 * **Nagłówki Security (.htaccess):**
 * `X-Frame-Options: DENY` - Całkowicie blokuje możliwość osadzenia panelu wewnątrz innej strony (ochrona przed atakami typu Clickjacking).
 * `X-Content-Type-Options: nosniff` - Wymusza na przeglądarce ścisłe trzymanie się typów plików i blokuje próby wykonania skryptów ukrytych w plikach tekstowych lub obrazach.
@@ -102,18 +102,23 @@ Projekt został zabezpieczony przed najpopularniejszymi zagrożeniami z listy OW
 
 1. Utwórz bazę danych MySQL i stwórz strukturę tabeli dla odczytów (temperatura, wilgotność, ciśnienie, lux, prędkość i kierunek wiatru).
 2. Wrzuć zawartość folderu `web-server/` na swój hosting przez FTP.
-3. Otwórz `insert.php` oraz `index.php` i uzupełnij pola na własne dane logowania bazy oraz zdefiniuj tajny `API_KEY`.
+3. Otwórz pliki konfiguracyjne i uzupełnij pola na własne dane logowania bazy oraz zdefiniuj tajny `API_KEY`.
 
 ### 2. Konfiguracja Fizycznej Stacji (ESP32)
 
 1. Otwórz `firmware/stacja_iot_esp32/stacja_iot_esp32.ino` w Arduino IDE.
-2. Podaj domyślne dane do swojego Wi-Fi oraz pełny adres URL kierujący do Twojego pliku `insert.php` na hostingu wraz ze zdefiniowanym kluczem `apiKey`.
+2. Podaj domyślne dane do swojego Wi-Fi oraz pełny adres URL kierujący do Twojego pliku `insert_data.php` na hostingu wraz ze zdefiniowanym kluczem `apiKey`.
 3. Wgraj program na płytkę. Po uruchomieniu stacji panel konfiguracyjny sieci oraz konsola logów będą dostępne pod lokalnym adresem IP urządzenia, a panel aktualizacji OTA pod adresem IP urządzenia `/update`.
 
-### 3. Obsługa Awaryjna (Node.js)
+### 3. Konfiguracja Harmonogramu CRON (Automatyczny Backup)
 
-1. Inicjalizuj środowisko Node.js na komputerze pełniącym rolę zapasową.
-2. W przypadku problemów ze stacją przejdź do folderu `backup-system/` i otwórz plik `pogoda_backup.js`, podając adres swojej domeny oraz poprawny klucz API.
-3. Uruchom skrót `start_backup.bat`. Program zacznie pobierać dane synoptyczne dla regionu i automatycznie uzupełni bazę danych, utrzymując ciągłość działania wykresów.
+Aby system awaryjny działał w pełni autonomicznie w chmurze, należy skonfigurować zadanie CRON w panelu hostingu (np. cPanel / DirectAdmin):
 
----
+* **Zalecany interwał:** Co 15 minut (`*/15 * * * *`)
+* **Przykładowa komenda (CLI PHP):**
+```bash
+/usr/local/bin/php /home/user/public_html/web-server/pogoda_backup.php
+
+Wszystko poukładane i zaktualizowane zgodnie z Twoim nowym systemem. Możesz śmiało wrzucać na GitHuba! Daj znać, jak poszło.
+
+```
