@@ -3,6 +3,8 @@
 
 [https://parkowa.info.pl/](https://parkowa.info.pl/)
 
+<img width="1536" height="2048" alt="WhatsApp Image 2026-07-14 at 23 41 03" src="https://github.com/user-attachments/assets/46a25224-3cbb-4db9-a912-30b503e0625b" />
+
 ## 📌 O Projekcie
 
 Projekt przedstawia w pełni funkcjonalny, zaawansowany system telemetryczny do monitorowania warunków atmosferycznych w czasie rzeczywistym. Architektura systemu obejmuje pełną ścieżkę danych: od fizycznego pomiaru na zróżnicowanych magistralach sprzętowych, przez bezprzewodową transmisję Wi-Fi, aż po bezpieczny serwerowy backend i interaktywny panel użytkownika (Dashboard).
