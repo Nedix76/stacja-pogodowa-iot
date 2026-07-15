@@ -1,5 +1,4 @@
 
-
 # 🌤️ Inteligentna Stacja Meteo IoT z Autorskim Systemem Awaryjnym (Failover Solution)
 
 [https://parkowa.info.pl/](https://parkowa.info.pl/)
