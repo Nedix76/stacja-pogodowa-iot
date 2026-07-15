@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Moja strona próbna</title>
+</head>
+<body>
+
+    <h1>Dane z szkolnej stacji meteo:</h1>
+    <p>Aktualna temperatura w szkole to: <strong id="temp">Ładowanie...</strong> °C</p>
+    <p>Ostatnia aktualizacja: <span id="czas">-</span></p>
+
+    <script>
+        // Adres do Twojego nowego API (podmień na swój właściwy adres!)
+        const url_stacji = '';
+
+        // Pobieramy dane za pomocą JavaScript (funkcja fetch)
+        fetch(url_stacji)
+            .then(response => response.json()) // zamieniamy odpowiedź na obiekt JavaScript
+            .then(data => {
+                // Wstawiamy pobrane dane na stronę do odpowiednich tagów
+                document.getElementById('temp').innerText = data.temperatura;
+                document.getElementById('czas').innerText = data.czas;
+            })
+            .catch(error => {
+                console.error('Błąd pobierania danych:', error);
+                document.getElementById('temp').innerText = 'Błąd!';
+            });
+    </script>
+</body>
+</html>
