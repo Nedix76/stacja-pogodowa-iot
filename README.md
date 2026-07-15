@@ -3,7 +3,7 @@
 
 [https://parkowa.info.pl/](https://parkowa.info.pl/)
 
-<img width="1536" height="2048" alt="image" src="https://github.com/user-attachments/assets/379d445e-f528-43af-a1d6-08db01f298ee" /
+<img width="1536" height="2048" alt="image" src="https://github.com/user-attachments/assets/379d445e-f528-43af-a1d6-08db01f298ee" />
 <img width="1536" height="2048" alt="WhatsApp Image 2026-07-14 at 23 41 03" src="https://github.com/user-attachments/assets/46a25224-3cbb-4db9-a912-30b503e0625b" />
 <img width="1536" height="2048" alt="image" src="https://github.com/user-attachments/assets/f0f2334f-059e-4324-839a-c30141203166" />
 <img width="1536" height="2048" alt="image" src="https://github.com/user-attachments/assets/a48c9b82-67b5-467f-94cf-4f1a950f07ed" />
