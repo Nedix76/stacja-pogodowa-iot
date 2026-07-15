@@ -6,22 +6,18 @@
 <table align="center">
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/379d445e-f528-43af-a1d6-08db01f298ee" width="300" alt="Stacja Meteo 1" /><br/>
-      <sub>Konstrukcja stacji</sub>
+      <img src="https://github.com/user-attachments/assets/379d445e-f528-43af-a1d6-08db01f298ee" width="340" alt="Stacja Meteo 1" />
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/46a25224-3cbb-4db9-a912-30b503e0625b" width="300" alt="Stacja Meteo 2" /><br/>
-      <sub>Zbliżenie na czujniki</sub>
+      <img src="https://github.com/user-attachments/assets/46a25224-3cbb-4db9-a912-30b503e0625b" width="340" alt="Stacja Meteo 2" />
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/f0f2334f-059e-4324-839a-c30141203166" width="300" alt="Stacja Meteo 3" /><br/>
-      <sub>Elektronika i ESP32</sub>
+      <img src="https://github.com/user-attachments/assets/f0f2334f-059e-4324-839a-c30141203166" width="340" alt="Stacja Meteo 3" />
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/a48c9b82-67b5-467f-94cf-4f1a950f07ed" width="300" alt="Stacja Meteo 4" /><br/>
-      <sub>Wykresy i Dashboard</sub>
+      <img src="https://github.com/user-attachments/assets/a48c9b82-67b5-467f-94cf-4f1a950f07ed" width="340" alt="Stacja Meteo 4" />
     </td>
   </tr>
 </table>
